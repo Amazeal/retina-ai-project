@@ -1,0 +1,240 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Verification | RetinaAI</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        .verification-container {
+            max-width: 850px;
+            margin: 50px auto;
+            padding: 25px;
+        }
+
+        .verification-card {
+            background: #111d31;
+            border: 1px solid #263650;
+            border-radius: 18px;
+            padding: 32px;
+        }
+
+        .verification-status {
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .verification-status.success {
+            background: rgba(34, 197, 94, 0.10);
+            border: 1px solid rgba(34, 197, 94, 0.35);
+        }
+
+        .verification-status.failed {
+            background: rgba(239, 68, 68, 0.10);
+            border: 1px solid rgba(239, 68, 68, 0.35);
+        }
+
+        .verification-status h2 {
+            margin: 0 0 10px;
+            font-size: 23px;
+        }
+
+        .verification-status.success h2 {
+            color: #4ade80;
+        }
+
+        .verification-status.failed h2 {
+            color: #f87171;
+        }
+
+        .stage-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 22px;
+        }
+
+        .stage-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 17px;
+            background: #17243a;
+            border: 1px solid #2b3b55;
+            border-radius: 12px;
+        }
+
+        .stage-icon {
+            font-size: 20px;
+        }
+
+        .stage-item h3 {
+            color: #f1f5f9;
+            font-size: 15px;
+            margin: 0 0 6px;
+        }
+
+        .stage-item p {
+            color: #a8b5c8;
+            font-size: 13px;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .stage-passed {
+            color: #4ade80;
+        }
+
+        .stage-failed {
+            color: #f87171;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 28px;
+        }
+
+        .action-button {
+            display: inline-block;
+            padding: 13px 22px;
+            border-radius: 9px;
+            text-decoration: none;
+            font-weight: 600;
+            background: #2563eb;
+            color: white;
+        }
+
+        .action-button.secondary {
+            background: #25354e;
+            color: #e2e8f0;
+        }
+
+        .disclaimer {
+            color: #94a3b8;
+            font-size: 12px;
+            line-height: 1.7;
+            margin-top: 25px;
+        }
+
+        @media (max-width: 600px) {
+            .verification-container {
+                margin: 20px auto;
+                padding: 14px;
+            }
+
+            .verification-card {
+                padding: 20px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .action-button {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="verification-container">
+
+        <div class="verification-card">
+
+            <h1>Image Verification</h1>
+
+            <p style="color: #94a3b8;">
+                Review the results of the retinal image verification process.
+            </p>
+
+            {% if success %}
+
+                <div class="verification-status success">
+                    <h2>✓ Image Verified</h2>
+                    <p style="color: #bbf7d0;">
+                        {{ message }}
+                    </p>
+                </div>
+
+            {% else %}
+
+                <div class="verification-status failed">
+                    <h2>✕ Verification Failed</h2>
+                    <p style="color: #fecaca;">
+                        {{ message }}
+                    </p>
+                </div>
+
+            {% endif %}
+
+
+            <h2 style="margin-top: 30px;">Verification Summary</h2>
+
+            {% if stages %}
+
+                <div class="stage-list">
+
+                    {% for stage in stages %}
+
+                        <div class="stage-item">
+
+                            <div class="stage-icon">
+                                {% if stage.status == "passed" %}
+                                    <span class="stage-passed">✓</span>
+                                {% else %}
+                                    <span class="stage-failed">✕</span>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <h3>{{ stage.name }}</h3>
+                                <p>{{ stage.message }}</p>
+                            </div>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% else %}
+
+                <p style="color: #94a3b8;">
+                    No verification stages are available.
+                </p>
+
+            {% endif %}
+
+
+            <div class="action-buttons">
+
+                <a href="{{ url_for('home') }}" class="action-button">
+                    Upload Another Image
+                </a>
+
+            </div>
+
+
+            <div class="disclaimer">
+                <strong>Prototype Disclaimer:</strong>
+                This project currently uses basic image-quality checks
+                and demonstration-based retinal image verification.
+                It does not use a trained AI model and does not provide
+                a real medical diagnosis. Any diabetic retinopathy
+                classification results are simulated.
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+</html>
