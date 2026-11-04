@@ -1,0 +1,149 @@
+
+<!DOCTYPE html>
+<html lang="{{ current_language }}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RetinaAI | {{ 'நோயாளர் பதிவுகள்' if current_language == 'ta' else 'रोगी रिकॉर्ड' if current_language == 'hi' else 'Patient Records' }}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<style>
+.wrap{max-width:1050px;margin:35px auto;padding:20px}
+.card{background:#101a2b;border:1px solid #233149;border-radius:15px;padding:23px;margin:18px 0}
+p{color:#a8b5c9;line-height:1.7}
+.item{background:#17243a;border:1px solid #2b3b55;border-radius:11px;padding:17px;margin-top:13px}
+.btn{display:inline-block;background:#4b91ff;color:white;text-decoration:none;padding:11px 15px;border:0;border-radius:8px;cursor:pointer;font-size:14px}
+.secondary{background:#162238;border:1px solid #34445f}
+.warning{color:#f2c879}
+</style>
+</head>
+<body>
+
+{% include "partials/site_nav.html" %}
+
+{% macro label(en, ta, hi) -%}
+    {{ en if current_language == 'en' else ta if current_language == 'ta' else hi }}
+{%- endmacro %}
+
+<div class="wrap">
+    <div class="logo">Retina<span style="color:#4b91ff;">AI.</span></div>
+
+    <h1>{{ label('Patient Records', 'நோயாளர் பதிவுகள்', 'रोगी रिकॉर्ड') }}</h1>
+
+    <p class="warning">
+        {{ label(
+            'Doctor account is self-registered and unverified.',
+            'மருத்துவர் கணக்கு சுயமாகப் பதிவு செய்யப்பட்டது; இன்னும் சரிபார்க்கப்படவில்லை.',
+            'डॉक्टर का खाता स्वयं पंजीकृत है और अभी सत्यापित नहीं है।'
+        ) }}
+    </p>
+
+    <section class="card">
+        <h2>{{ patient.full_name }}</h2>
+
+        <p><strong>{{ label('Patient ID:', 'நோயாளர் ID:', 'रोगी ID:') }}</strong> {{ patient.patient_id }}</p>
+        <p><strong>{{ label('Email:', 'மின்னஞ்சல்:', 'ईमेल:') }}</strong> {{ patient.email }}</p>
+        <p><strong>{{ label('Phone:', 'தொலைபேசி:', 'फ़ोन:') }}</strong> {{ patient.phone or label('Not provided', 'வழங்கப்படவில்லை', 'उपलब्ध नहीं') }}</p>
+        <p><strong>{{ label('Registration number:', 'பதிவு எண்:', 'पंजीकरण संख्या:') }}</strong> {{ patient.registration_number or label('Not provided', 'வழங்கப்படவில்லை', 'उपलब्ध नहीं') }}</p>
+
+        <a class="btn secondary" href="{{ url_for('dashboard') }}">
+            {{ label('Back to Dashboard', 'டாஷ்போர்டுக்குத் திரும்பு', 'डैशबोर्ड पर वापस जाएँ') }}
+        </a>
+    </section>
+
+    <section class="card">
+        <h2>{{ label('Screening History', 'பரிசோதனை வரலாறு', 'स्क्रीनिंग इतिहास') }}</h2>
+
+        {% if screenings %}
+            {% for screening in screenings %}
+            <div class="item">
+                <h3>{{ label('Screening', 'பரிசோதனை', 'स्क्रीनिंग') }} #{{ screening.id }}</h3>
+
+                <p>
+                    <strong>{{ label('Date:', 'தேதி:', 'तारीख:') }}</strong>
+                    {{ screening.created_at.strftime("%d %b %Y, %H:%M") }} UTC
+                </p>
+
+                <p>
+                    <strong>{{ label('Classification:', 'வகைப்பாடு:', 'वर्गीकरण:') }}</strong>
+                    {{ levels[screening.grade].name }}
+                </p>
+
+                <p>
+                    <strong>{{ label('Grade:', 'தரம்:', 'ग्रेड:') }}</strong>
+                    {{ screening.grade }} / 4
+                </p>
+
+                <p>
+                    <strong>{{ label('Mode:', 'முறை:', 'मोड:') }}</strong>
+                    {{ label('Simulated demonstration', 'உருவகப்படுத்தப்பட்ட விளக்கக் காட்சி', 'सिम्युलेटेड प्रदर्शन') }}
+                </p>
+
+                <a class="btn" href="{{ url_for('doctor_screening', screening_id=screening.id) }}">
+                    {{ label('Open Screening & Review', 'பரிசோதனை மற்றும் மதிப்பாய்வைத் திற', 'स्क्रीनिंग और समीक्षा खोलें') }}
+                </a>
+
+                <a class="btn secondary" href="{{ url_for('download_report', screening_id=screening.id) }}">
+                    {{ label('Download PDF', 'PDF பதிவிறக்கு', 'PDF डाउनलोड करें') }}
+                </a>
+
+                {% if reviews_by_screening.get(screening.id) %}
+                    {% for review in reviews_by_screening[screening.id] %}
+                    <div class="item">
+                        <p>
+                            <strong>{{ label('Review date:', 'மதிப்பாய்வு தேதி:', 'समीक्षा की तारीख:') }}</strong>
+                            {{ review.created_at.strftime("%d %b %Y, %H:%M") }} UTC
+                        </p>
+
+                        {% if review.classification_comment %}
+                        <p>
+                            <strong>{{ label('Classification:', 'வகைப்பாடு:', 'वर्गीकरण:') }}</strong><br>
+                            {{ review.classification_comment }}
+                        </p>
+                        {% endif %}
+
+                        {% if review.heatmap_comment %}
+                        <p>
+                            <strong>{{ label('Heatmap:', 'ஹீட்மேப்:', 'हीटमैप:') }}</strong><br>
+                            {{ review.heatmap_comment }}
+                        </p>
+                        {% endif %}
+
+                        {% if review.progress_comment %}
+                        <p>
+                            <strong>{{ label('Progress:', 'முன்னேற்றம்:', 'प्रगति:') }}</strong><br>
+                            {{ review.progress_comment }}
+                        </p>
+                        {% endif %}
+
+                        {% if review.overall_advice %}
+                        <p>
+                            <strong>{{ label('Advice:', 'ஆலோசனை:', 'सलाह:') }}</strong><br>
+                            {{ review.overall_advice }}
+                        </p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>
+                {{ label(
+                    'This patient has no saved screenings yet.',
+                    'இந்த நோயாளிக்கு இதுவரை சேமிக்கப்பட்ட பரிசோதனைகள் இல்லை.',
+                    'इस रोगी की अभी तक कोई स्क्रीनिंग सहेजी नहीं गई है।'
+                ) }}
+            </p>
+        {% endif %}
+    </section>
+
+    <p style="font-size:12px;text-align:center">
+        {{ label(
+            'Educational prototype only. Simulated grades are not medical diagnoses.',
+            'இது கல்வி நோக்கத்திற்கான முன்மாதிரி மட்டுமே. உருவகப்படுத்தப்பட்ட தரங்கள் மருத்துவ நோயறிதல்கள் அல்ல.',
+            'यह केवल एक शैक्षिक प्रोटोटाइप है। सिम्युलेटेड ग्रेड चिकित्सा निदान नहीं हैं।'
+        ) }}
+    </p>
+</div>
+</body>
+</html>

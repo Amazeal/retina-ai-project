@@ -1,0 +1,296 @@
+
+<!DOCTYPE html>
+<html lang="{{ current_language }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RetinaAI | {{ t(role) }} {{ t(mode) }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        .auth-wrapper {
+            max-width: 520px;
+            margin: 45px auto;
+            padding: 20px;
+        }
+
+        .auth-card {
+            background: #101a2b;
+            border: 1px solid #233149;
+            border-radius: 18px;
+            padding: 35px;
+        }
+
+        .auth-logo {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .auth-logo .logo {
+            font-size: 25px;
+            font-weight: 800;
+        }
+
+        .auth-logo .logo span { color: #4b91ff; }
+
+        .auth-card h1 {
+            font-size: 27px;
+            margin-bottom: 8px;
+        }
+
+        .auth-subtitle {
+            color: #8d9bb2;
+            margin-bottom: 28px;
+            line-height: 1.6;
+        }
+
+        .form-group { margin-bottom: 18px; }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #c4d0e2;
+        }
+
+        .form-group input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 13px 14px;
+            border-radius: 9px;
+            border: 1px solid #34445f;
+            background: #080e1b;
+            color: #edf4ff;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .form-group input:focus {
+            border-color: #4b91ff;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            border: 0;
+            border-radius: 9px;
+            background: #4b91ff;
+            color: white;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .submit-btn:hover { background: #347eea; }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 22px;
+            color: #8d9bb2;
+            font-size: 13px;
+        }
+
+        .auth-footer a {
+            color: #65a2ff;
+            text-decoration: none;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #8d9bb2;
+            text-decoration: none;
+        }
+
+        .flash-message {
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            background: #162238;
+            color: #edf4ff;
+            font-size: 13px;
+        }
+
+        .notice {
+            padding: 12px;
+            border-radius: 8px;
+            background: #162238;
+            color: #8d9bb2;
+            font-size: 12px;
+            line-height: 1.6;
+            margin-top: 20px;
+        }
+
+        @media(max-width: 550px) {
+            .auth-wrapper { margin: 15px auto; padding: 12px; }
+            .auth-card { padding: 23px; }
+        }
+    </style>
+</head>
+
+<body>
+
+{% include "partials/site_nav.html" %}
+
+<div class="auth-wrapper">
+
+    <a href="{{ url_for('account') }}" class="back-link">
+        ← {{ t('back') }} {{ t('account') }}
+    </a>
+
+    <div class="auth-card">
+
+        <div class="auth-logo">
+            <div class="logo">Retina<span>AI.</span></div>
+        </div>
+
+        {% if mode == "register" %}
+            <h1>{{ t('register') }} {{ t(role) }} {{ t('account') }}</h1>
+            <p class="auth-subtitle">
+                {{ t('register_intro') }}
+            </p>
+        {% else %}
+            <h1>{{ t(role) }} {{ t('login') }}</h1>
+            <p class="auth-subtitle">
+                {{ t('login_intro') }}
+            </p>
+        {% endif %}
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="flash-message">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+
+        <form method="POST">
+
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            {% if mode == "register" %}
+
+                <div class="form-group">
+                    <label for="full_name">{{ t('full_name') }}</label>
+                    <input
+                        type="text"
+                        id="full_name"
+                        name="full_name"
+                        maxlength="120"
+                        placeholder="{{ t('full_name_placeholder') }}"
+                        autocomplete="name"
+                        required
+                    >
+                </div>
+
+            {% endif %}
+
+            <div class="form-group">
+                <label for="email">{{ t('email') }}</label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="{{ t('email_placeholder') }}"
+                    autocomplete="email"
+                    required
+                >
+            </div>
+
+            {% if mode == "register" and role == "patient" %}
+
+                <div class="form-group">
+                    <label for="phone">{{ t('phone') }}</label>
+                    <input
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        placeholder="{{ t('phone_placeholder') }}"
+                        autocomplete="tel"
+                        maxlength="20"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="registration_number">
+                        {{ t('registration_number') }}
+                    </label>
+                    <input
+                        type="text"
+                        id="registration_number"
+                        name="registration_number"
+                        placeholder="{{ t('registration_placeholder') }}"
+                        maxlength="100"
+                        required
+                    >
+                </div>
+
+            {% endif %}
+
+            {% if mode == "register" and role == "doctor" %}
+
+                <div class="form-group">
+                    <label for="medical_registration_number">
+                        {{ t('medical_registration_number') }}
+                    </label>
+                    <input
+                        type="text"
+                        id="medical_registration_number"
+                        name="medical_registration_number"
+                        placeholder="{{ t('medical_registration_placeholder') }}"
+                        maxlength="100"
+                        required
+                    >
+                </div>
+
+                <div class="notice">
+                    {{ t('doctor_verification_notice') }}
+                </div>
+
+            {% endif %}
+
+            <div class="form-group">
+                <label for="password">{{ t('password') }}</label>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="{% if mode == 'register' %}{{ t('password_minimum') }}{% else %}{{ t('password_placeholder') }}{% endif %}"
+                    minlength="8"
+                    autocomplete="{% if mode == 'register' %}new-password{% else %}current-password{% endif %}"
+                    required
+                >
+            </div>
+
+            <button type="submit" class="submit-btn">
+                {% if mode == "register" %}
+                    {{ t('create_account') }} →
+                {% else %}
+                    {{ t('login') }} →
+                {% endif %}
+            </button>
+
+        </form>
+
+        <div class="auth-footer">
+
+            {% if mode == "register" %}
+                {{ t('already_account') }}
+                <a href="{{ url_for('login', role=role) }}">
+                    {{ t('login_here') }}
+                </a>
+            {% else %}
+                {{ t('no_account') }}
+                <a href="{{ url_for('register', role=role) }}">
+                    {{ t('register_here') }}
+                </a>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

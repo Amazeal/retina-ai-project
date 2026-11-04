@@ -1,12 +1,12 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ current_language }}">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>RetinaAI | Retinal Analysis</title>
+    <title>RetinaAI | {{ t('retinal_analysis') }}</title>
 
     <link rel="stylesheet"
           href="{{ url_for('static', filename='css/style.css') }}">
@@ -14,36 +14,36 @@
 
 <body>
 
+{% include "partials/site_nav.html" %}
+
 <div class="app">
 
     <!-- MOBILE HEADER -->
     <header class="mobile-header">
         <div class="logo">Retina<span>AI.</span></div>
-        <small>● Online</small>
+        <small>● {{ t('online') }}</small>
     </header>
-
 
     <!-- DESKTOP SIDEBAR -->
     <aside class="sidebar">
 
         <div class="logo">Retina<span>AI.</span></div>
 
-        <p class="nav-label">MENU</p>
+        <p class="nav-label">{{ t('menu') }}</p>
 
-        <a href="/" class="nav-link active">
-            ◈ Dashboard
+        <a href="{{ url_for('dashboard') }}" class="nav-link">
+            ◈ {{ t('dashboard') }}
         </a>
 
-        <a href="/" class="nav-link">
-            ＋ New Analysis
+        <a href="{{ url_for('home') }}" class="nav-link active">
+            ＋ {{ t('new_analysis') }}
         </a>
 
-        <a href="/" class="nav-link">
-            ⓘ About System
+        <a href="{{ url_for('dashboard') }}" class="nav-link">
+            ⓘ {{ t('about_system') }}
         </a>
 
     </aside>
-
 
     <!-- MAIN CONTENT -->
     <main class="main">
@@ -52,52 +52,53 @@
         <header class="topbar">
 
             <div>
-                <h1>Retinal Analysis Dashboard</h1>
+                <h1>{{ t('retinal_analysis_dashboard') }}</h1>
 
                 <p>
-                    AI-based diabetic retinopathy screening demonstration
+                    {{ t('ai_dr_screening_demo') }}
                 </p>
             </div>
 
             <div class="status">
-                ● System Online
+                ● {{ t('system_online') }}
             </div>
 
         </header>
 
-
         <!-- SECTION HEADING -->
         <section class="section-heading">
 
-            <h2>New Image Analysis</h2>
+            <h2>{{ t('new_image_analysis') }}</h2>
 
             <p>
-                Upload a retinal fundus image to begin the screening process.
+                {{ t('upload_instruction') }}
             </p>
 
         </section>
 
-
         <!-- UPLOAD CARD -->
         <section class="upload-card">
 
-            <form action="/analyze"
+            <form action="{{ url_for('analyze') }}"
                   method="POST"
                   enctype="multipart/form-data">
+
+                <input type="hidden" name="csrf_token"
+                       value="{{ csrf_token() }}">
 
                 <!-- IMAGE DROPZONE -->
                 <label class="dropzone" for="retinalImage">
 
                     <div class="upload-icon">↥</div>
 
-                    <h3>Upload Retinal Image</h3>
+                    <h3>{{ t('upload_retinal_image') }}</h3>
 
                     <p>
-                        Drag and drop your image here or browse files
+                        {{ t('drag_drop_instruction') }}
                     </p>
 
                     <span class="upload-btn">
-                        Choose Image
+                        {{ t('choose_image') }}
                     </span>
 
                     <input
@@ -110,14 +111,13 @@
 
                 </label>
 
-
                 <!-- IMAGE PREVIEW -->
                 <div class="preview-container" id="previewContainer">
 
                     <div class="preview-header">
 
                         <span id="fileName">
-                            Selected image
+                            {{ t('selected_image') }}
                         </span>
 
                         <button
@@ -125,7 +125,7 @@
                             class="remove-btn"
                             onclick="removeImage()">
 
-                            Remove ✕
+                            {{ t('remove') }} ✕
 
                         </button>
 
@@ -133,82 +133,77 @@
 
                     <img
                         id="preview"
-                        alt="Uploaded retinal image preview"
+                        alt="{{ t('retinal_image_preview') }}"
                     >
 
                 </div>
 
-
                 <!-- FILE INFORMATION -->
                 <div class="file-info">
-                    Supported formats: JPG, JPEG, PNG
+                    {{ t('supported_formats') }}: JPG, JPEG, PNG
                     <br>
-                    Maximum file size: 10 MB
+                    {{ t('maximum_file_size') }}: 10 MB
                 </div>
-
 
                 <!-- ANALYZE BUTTON -->
                 <button type="submit" class="analyze-btn">
-                    Start Screening →
+                    {{ t('start_screening') }} →
                 </button>
 
             </form>
 
-
             <!-- DISCLAIMER -->
             <p class="footer-note">
-                This application is an educational demonstration.
-                Its simulated results are not intended for medical
-                diagnosis or clinical decision-making.
+                {{ t('upload_disclaimer') }}
             </p>
 
         </section>
 
     </main>
 
-
     <!-- MOBILE BOTTOM NAVIGATION -->
     <nav class="mobile-nav">
 
-        <a href="/" class="active">
+        <a href="{{ url_for('dashboard') }}">
             ◈
             <br>
-            Home
+            {{ t('home') }}
         </a>
 
-        <a href="/">
+        <a href="{{ url_for('home') }}" class="active">
             ＋
             <br>
-            Analysis
+            {{ t('analysis') }}
         </a>
 
-        <a href="/">
+        <a href="{{ url_for('dashboard') }}">
             ⓘ
             <br>
-            About
+            {{ t('about') }}
         </a>
 
     </nav>
 
 </div>
 
-
 <!-- IMAGE UPLOAD JAVASCRIPT -->
 <script>
 
     const input = document.getElementById("retinalImage");
-
     const preview = document.getElementById("preview");
 
     const previewContainer =
         document.getElementById("previewContainer");
 
     const fileName = document.getElementById("fileName");
-
     const dropzone = document.querySelector(".dropzone");
 
     let currentPreviewUrl = null;
 
+    const messages = {
+        invalidFormat: {{ t('invalid_image_format')|tojson }},
+        invalidSize: {{ t('invalid_image_size')|tojson }}
+    };
 
     // DISPLAY AND VALIDATE IMAGE
     function showImage(file) {
@@ -223,62 +218,45 @@
         // Validate file format
         if (!allowedTypes.includes(file.type)) {
 
-            alert("Please upload a JPG or PNG image.");
-
+            alert(messages.invalidFormat);
             input.value = "";
-
             return;
         }
-
 
         // Validate file size (10 MB)
         if (file.size > 10 * 1024 * 1024) {
 
-            alert("Image size must be less than 10 MB.");
-
+            alert(messages.invalidSize);
             input.value = "";
-
             return;
         }
 
-
         // Release previous preview
         if (currentPreviewUrl) {
-
             URL.revokeObjectURL(currentPreviewUrl);
-
         }
-
 
         // Create image preview
         currentPreviewUrl = URL.createObjectURL(file);
 
         preview.src = currentPreviewUrl;
-
         fileName.textContent = file.name;
 
         previewContainer.style.display = "block";
-
     }
-
 
     // FILE INPUT CHANGE
     input.addEventListener("change", function () {
-
         showImage(this.files[0]);
-
     });
-
 
     // DRAG OVER
     dropzone.addEventListener("dragover", function (event) {
 
         event.preventDefault();
-
         dropzone.classList.add("dragover");
 
     });
-
 
     // DRAG LEAVE
     dropzone.addEventListener("dragleave", function () {
@@ -287,12 +265,10 @@
 
     });
 
-
     // DROP IMAGE
     dropzone.addEventListener("drop", function (event) {
 
         event.preventDefault();
-
         dropzone.classList.remove("dragover");
 
         const file = event.dataTransfer.files[0];
@@ -302,13 +278,11 @@
         const transfer = new DataTransfer();
 
         transfer.items.add(file);
-
         input.files = transfer.files;
 
         showImage(file);
 
     });
-
 
     // REMOVE IMAGE
     function removeImage() {
@@ -316,15 +290,12 @@
         if (currentPreviewUrl) {
 
             URL.revokeObjectURL(currentPreviewUrl);
-
             currentPreviewUrl = null;
 
         }
 
         input.value = "";
-
         preview.src = "";
-
         previewContainer.style.display = "none";
 
     }

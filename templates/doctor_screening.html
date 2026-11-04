@@ -1,0 +1,197 @@
+
+<!DOCTYPE html>
+<html lang="{{ current_language }}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RetinaAI | {{ 'மதிப்பாய்வு' if current_language == 'ta' else 'स्क्रीनिंग समीक्षा' if current_language == 'hi' else 'Screening Review' }}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<style>
+.wrap{max-width:1000px;margin:35px auto;padding:20px}
+.card{background:#101a2b;border:1px solid #233149;border-radius:15px;padding:23px;margin:18px 0}
+p{color:#a8b5c9;line-height:1.7}
+.field{box-sizing:border-box;width:100%;padding:12px;margin:7px 0 17px;border-radius:8px;border:1px solid #34445f;background:#0b1423;color:#edf4ff}
+textarea.field{min-height:100px;resize:vertical}
+.btn{display:inline-block;background:#4b91ff;color:white;text-decoration:none;padding:11px 15px;border:0;border-radius:8px;cursor:pointer}
+.secondary{background:#162238;border:1px solid #34445f}
+.warning{color:#f2c879}
+img{display:block;max-width:100%;max-height:600px;border-radius:10px;margin:15px 0}
+.review{background:#17243a;padding:15px;border:1px solid #2b3b55;border-radius:10px;margin-top:12px}
+</style>
+</head>
+<body>
+
+{% include "partials/site_nav.html" %}
+
+{% macro label(en, ta, hi) -%}
+    {{ en if current_language == 'en' else ta if current_language == 'ta' else hi }}
+{%- endmacro %}
+
+<div class="wrap">
+    <div class="logo">Retina<span style="color:#4b91ff;">AI.</span></div>
+
+    <h1>{{ label('Screening Review', 'பரிசோதனை மதிப்பாய்வு', 'स्क्रीनिंग समीक्षा') }}</h1>
+
+    <p class="warning">
+        {{ label(
+            'Doctor account is self-registered and unverified.',
+            'மருத்துவர் கணக்கு சுயமாகப் பதிவு செய்யப்பட்டது; இன்னும் சரிபார்க்கப்படவில்லை.',
+            'डॉक्टर का खाता स्वयं पंजीकृत है और अभी सत्यापित नहीं है।'
+        ) }}
+    </p>
+
+    <section class="card">
+        <h2>{{ label('Patient:', 'நோயாளர்:', 'रोगी:') }} {{ patient.full_name }}</h2>
+
+        <p><strong>{{ label('Patient ID:', 'நோயாளர் ID:', 'रोगी ID:') }}</strong> {{ patient.patient_id }}</p>
+
+        <p><strong>{{ label('Screening:', 'பரிசோதனை:', 'स्क्रीनिंग:') }}</strong> #{{ screening.id }}</p>
+
+        <p>
+            <strong>{{ label('Date:', 'தேதி:', 'तारीख:') }}</strong>
+            {{ screening.created_at.strftime("%d %b %Y, %H:%M") }} UTC
+        </p>
+
+        <p>
+            <strong>{{ label('Demonstration classification:', 'விளக்க வகைப்பாடு:', 'प्रदर्शन वर्गीकरण:') }}</strong>
+            {{ level.name }} ({{ label('Grade', 'தரம்', 'ग्रेड') }} {{ screening.grade }})
+        </p>
+
+        <p>
+            <strong>{{ label('Analysis mode:', 'பகுப்பாய்வு முறை:', 'विश्लेषण मोड:') }}</strong>
+            {{ label('Simulated educational demonstration', 'உருவகப்படுத்தப்பட்ட கல்வி விளக்கக் காட்சி', 'सिम्युलेटेड शैक्षिक प्रदर्शन') }}
+        </p>
+
+        {% if image_available %}
+            <h3>{{ label('Uploaded retinal image', 'பதிவேற்றப்பட்ட விழித்திரைப் படம்', 'अपलोड की गई रेटिना छवि') }}</h3>
+            <img src="{{ url_for('doctor_screening_image', screening_id=screening.id) }}" alt="{{ label('Uploaded image for review', 'மதிப்பாய்வுக்கான பதிவேற்றப்பட்ட படம்', 'समीक्षा के लिए अपलोड की गई छवि') }}">
+        {% else %}
+            <p class="warning">
+                {{ label(
+                    'The uploaded image is no longer available on this server.',
+                    'பதிவேற்றப்பட்ட படம் இந்தச் சேவையகத்தில் இனி கிடைக்கவில்லை.',
+                    'अपलोड की गई छवि अब इस सर्वर पर उपलब्ध नहीं है।'
+                ) }}
+            </p>
+        {% endif %}
+
+        <a class="btn secondary" href="{{ url_for('doctor_patient', patient_id=patient.patient_id) }}">
+            {{ label('Back to Patient Records', 'நோயாளர் பதிவுகளுக்குத் திரும்பு', 'रोगी रिकॉर्ड पर वापस जाएँ') }}
+        </a>
+
+        <a class="btn" href="{{ url_for('download_report', screening_id=screening.id) }}">
+            {{ label('Download PDF', 'PDF பதிவிறக்கு', 'PDF डाउनलोड करें') }}
+        </a>
+    </section>
+
+    <section class="card">
+        <h2>{{ label('Add Review', 'மதிப்பாய்வைச் சேர்', 'समीक्षा जोड़ें') }}</h2>
+
+        <p>
+            {{ label(
+                "Leave comments for this screening. These will be visible on the patient's dashboard. This prototype does not generate a real heatmap.",
+                'இந்தப் பரிசோதனைக்கான கருத்துகளை எழுதுங்கள். இவை நோயாளியின் டாஷ்போர்டில் காணப்படும். இந்த முன்மாதிரி உண்மையான ஹீட்மேப்பை உருவாக்காது.',
+                'इस स्क्रीनिंग के लिए टिप्पणियाँ लिखें। ये रोगी के डैशबोर्ड पर दिखाई देंगी। यह प्रोटोटाइप वास्तविक हीटमैप नहीं बनाता है।'
+            ) }}
+        </p>
+
+        <form method="POST" action="{{ url_for('doctor_save_review', screening_id=screening.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <label for="classification_comment">
+                {{ label('Classification comments', 'வகைப்பாடு தொடர்பான கருத்துகள்', 'वर्गीकरण संबंधी टिप्पणियाँ') }}
+            </label>
+            <textarea class="field" id="classification_comment" name="classification_comment" maxlength="5000"></textarea>
+
+            <label for="heatmap_comment">
+                {{ label('Heatmap comments', 'ஹீட்மேப் தொடர்பான கருத்துகள்', 'हीटमैप संबंधी टिप्पणियाँ') }}
+            </label>
+            <textarea
+                class="field"
+                id="heatmap_comment"
+                name="heatmap_comment"
+                maxlength="5000"
+                placeholder="{{ label(
+                    'No real heatmap is generated in this prototype.',
+                    'இந்த முன்மாதிரியில் உண்மையான ஹீட்மேப் உருவாக்கப்படாது.',
+                    'इस प्रोटोटाइप में वास्तविक हीटमैप नहीं बनाया जाता है।'
+                ) }}"
+            ></textarea>
+
+            <label for="progress_comment">
+                {{ label('Progress comments', 'முன்னேற்றம் தொடர்பான கருத்துகள்', 'प्रगति संबंधी टिप्पणियाँ') }}
+            </label>
+            <textarea class="field" id="progress_comment" name="progress_comment" maxlength="5000"></textarea>
+
+            <label for="overall_advice">
+                {{ label('Overall advice / message to patient', 'நோயாளிக்கான பொதுவான ஆலோசனை / செய்தி', 'रोगी के लिए सामान्य सलाह / संदेश') }}
+            </label>
+            <textarea class="field" id="overall_advice" name="overall_advice" maxlength="5000"></textarea>
+
+            <button class="btn" type="submit">
+                {{ label('Save Review', 'மதிப்பாய்வைச் சேமி', 'समीक्षा सहेजें') }}
+            </button>
+        </form>
+    </section>
+
+    <section class="card">
+        <h2>{{ label('Previous Reviews', 'முந்தைய மதிப்பாய்வுகள்', 'पिछली समीक्षाएँ') }}</h2>
+
+        {% if reviews %}
+            {% for review in reviews %}
+            <div class="review">
+                <p>
+                    <strong>{{ label('Date:', 'தேதி:', 'तारीख:') }}</strong>
+                    {{ review.created_at.strftime("%d %b %Y, %H:%M") }} UTC
+                </p>
+
+                {% if review.classification_comment %}
+                <p>
+                    <strong>{{ label('Classification:', 'வகைப்பாடு:', 'वर्गीकरण:') }}</strong><br>
+                    {{ review.classification_comment }}
+                </p>
+                {% endif %}
+
+                {% if review.heatmap_comment %}
+                <p>
+                    <strong>{{ label('Heatmap:', 'ஹீட்மேப்:', 'हीटमैप:') }}</strong><br>
+                    {{ review.heatmap_comment }}
+                </p>
+                {% endif %}
+
+                {% if review.progress_comment %}
+                <p>
+                    <strong>{{ label('Progress:', 'முன்னேற்றம்:', 'प्रगति:') }}</strong><br>
+                    {{ review.progress_comment }}
+                </p>
+                {% endif %}
+
+                {% if review.overall_advice %}
+                <p>
+                    <strong>{{ label('Advice:', 'ஆலோசனை:', 'सलाह:') }}</strong><br>
+                    {{ review.overall_advice }}
+                </p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>
+                {{ label(
+                    'No reviews have been added to this screening.',
+                    'இந்தப் பரிசோதனைக்கு இதுவரை மதிப்பாய்வுகள் சேர்க்கப்படவில்லை.',
+                    'इस स्क्रीनिंग में अभी तक कोई समीक्षा नहीं जोड़ी गई है।'
+                ) }}
+            </p>
+        {% endif %}
+    </section>
+
+    <p style="font-size:12px;text-align:center">
+        {{ label(
+            'Educational prototype only. Classifications are simulated and must not be used for clinical decisions.',
+            'இது கல்வி நோக்கத்திற்கான முன்மாதிரி மட்டுமே. வகைப்பாடுகள் உருவகப்படுத்தப்பட்டவை; மருத்துவ முடிவுகளுக்குப் பயன்படுத்தக்கூடாது.',
+            'यह केवल एक शैक्षिक प्रोटोटाइप है। वर्गीकरण सिम्युलेटेड हैं और इन्हें चिकित्सा निर्णयों के लिए उपयोग नहीं किया जाना चाहिए।'
+        ) }}
+    </p>
+</div>
+</body>
+</html>

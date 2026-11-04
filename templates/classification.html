@@ -1,420 +1,219 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ current_language }}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RetinaAI | {{ t('dr_classification') }}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
-    <title>DR Classification | RetinaAI</title>
-
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-
-    <style>
-        .page-container {
-            max-width: 1050px;
-            margin: 40px auto;
-            padding: 20px;
-        }
-
-        .main-card {
-            background: #111d31;
-            border: 1px solid #263650;
-            border-radius: 18px;
-            padding: 30px;
-        }
-
-        .demo-label {
-            display: inline-block;
-            background: rgba(245, 158, 11, 0.13);
-            color: #fbbf24;
-            border: 1px solid rgba(245, 158, 11, 0.3);
-            border-radius: 30px;
-            padding: 7px 13px;
-            font-size: 12px;
-            font-weight: 700;
-            margin-bottom: 20px;
-        }
-
-        .result-card {
-            background: #17243a;
-            border: 1px solid #2b3b55;
-            border-radius: 15px;
-            padding: 25px;
-            margin: 22px 0;
-        }
-
-        .result-grade {
-            font-size: 42px;
-            font-weight: 800;
-            color: #60a5fa;
-            margin: 10px 0;
-        }
-
-        .result-name {
-            font-size: 22px;
-            color: #f1f5f9;
-            margin-bottom: 10px;
-        }
-
-        .result-description {
-            color: #a8b5c8;
-            line-height: 1.6;
-        }
-
-        .image-preview {
-            width: 100%;
-            max-width: 480px;
-            max-height: 350px;
-            object-fit: contain;
-            background: #0b1424;
-            border-radius: 12px;
-            padding: 8px;
-            display: block;
-            margin: 20px auto;
-        }
-
-        .levels-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
-            margin: 22px 0;
-        }
-
-        .level-card {
-            background: #17243a;
-            border: 1px solid #2b3b55;
-            border-radius: 12px;
-            padding: 15px 10px;
-            text-align: center;
-        }
-
-        .level-card.selected {
-            border: 2px solid #3b82f6;
-            background: rgba(37, 99, 235, 0.16);
-        }
-
-        .level-number {
-            font-size: 24px;
-            font-weight: 800;
-            color: #60a5fa;
-        }
-
-        .level-name {
-            font-size: 11px;
-            color: #cbd5e1;
-            margin-top: 8px;
-            line-height: 1.4;
-        }
-
-        .stage-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin: 20px 0;
-        }
-
-        .stage-item {
-            padding: 15px;
-            border-radius: 10px;
-            background: #17243a;
-            border: 1px solid #2b3b55;
-        }
-
-        .stage-item h4 {
-            color: #f1f5f9;
-            margin: 0 0 6px;
-        }
-
-        .stage-item p {
-            color: #a8b5c8;
-            font-size: 13px;
-            margin: 0;
-            line-height: 1.5;
-        }
-
-        .passed {
-            color: #4ade80;
-        }
-
-        .demo-panel {
-            background: #17243a;
-            border: 1px solid #2b3b55;
-            padding: 22px;
-            border-radius: 14px;
-            margin-top: 28px;
-        }
-
-        .demo-panel label {
-            display: block;
-            color: #e2e8f0;
-            margin-bottom: 10px;
-        }
-
-        .demo-panel select {
-            width: 100%;
-            padding: 13px;
-            border-radius: 8px;
-            background: #0b1424;
-            border: 1px solid #3b4b63;
-            color: white;
-            margin-bottom: 15px;
-        }
-
-        .button {
-            display: inline-block;
-            padding: 13px 20px;
-            background: #2563eb;
-            color: white;
-            text-decoration: none;
-            border: none;
-            border-radius: 9px;
-            cursor: pointer;
-            font-weight: 600;
-            text-align: center;
-        }
-
-        .button.secondary {
-            background: #25354e;
-        }
-
-        .disclaimer {
-            margin-top: 25px;
-            color: #94a3b8;
-            font-size: 12px;
-            line-height: 1.7;
-        }
-
-        .actions {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-top: 25px;
-        }
-
-        @media(max-width: 700px) {
-            .levels-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .page-container {
-                margin: 15px auto;
-                padding: 12px;
-            }
-
-            .main-card {
-                padding: 18px;
-            }
-
-            .actions {
-                flex-direction: column;
-            }
-
-            .button {
-                width: 100%;
-                box-sizing: border-box;
-            }
-        }
-    </style>
+<style>
+.page-container{max-width:1050px;margin:40px auto;padding:20px}
+.main-card{background:#111d31;border:1px solid #263650;border-radius:18px;padding:30px}
+.demo-label{display:inline-block;background:rgba(245,158,11,.13);color:#fbbf24;border:1px solid rgba(245,158,11,.3);border-radius:30px;padding:7px 13px;font-size:12px;font-weight:700;margin-bottom:20px}
+.result-card{background:#17243a;border:1px solid #2b3b55;border-radius:15px;padding:25px;margin:22px 0}
+.result-grade{font-size:42px;font-weight:800;color:#60a5fa;margin:10px 0}
+.result-name{font-size:22px;color:#f1f5f9;margin-bottom:10px}
+.result-description{color:#a8b5c8;line-height:1.6}
+.image-preview{width:100%;max-width:480px;max-height:350px;object-fit:contain;background:#0b1424;border-radius:12px;padding:8px;display:block;margin:20px auto}
+.heatmap-card{background:#17243a;border:1px solid #2b3b55;border-radius:15px;padding:22px;margin:25px 0}
+.heatmap-image{width:100%;max-width:650px;max-height:450px;object-fit:contain;background:#0b1424;border-radius:12px;padding:8px;display:block;margin:20px auto}
+.heatmap-note{color:#fbbf24;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);padding:13px 15px;border-radius:10px;font-size:13px;line-height:1.6}
+.levels-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:22px 0}
+.level-card{background:#17243a;border:1px solid #2b3b55;border-radius:12px;padding:15px 10px;text-align:center}
+.level-card.selected{border:2px solid #3b82f6;background:rgba(37,99,235,.16)}
+.level-number{font-size:24px;font-weight:800;color:#60a5fa}
+.level-name{font-size:11px;color:#cbd5e1;margin-top:8px;line-height:1.4}
+.stage-list{display:flex;flex-direction:column;gap:12px;margin:20px 0}
+.stage-item{padding:15px;border-radius:10px;background:#17243a;border:1px solid #2b3b55}
+.stage-item h4{color:#f1f5f9;margin:0 0 6px}
+.stage-item p{color:#a8b5c8;font-size:13px;margin:0;line-height:1.5}
+.passed{color:#4ade80}
+.demo-panel{background:#17243a;border:1px solid #2b3b55;padding:22px;border-radius:14px;margin-top:28px}
+.demo-panel label{display:block;color:#e2e8f0;margin-bottom:10px}
+.demo-panel select{width:100%;padding:13px;border-radius:8px;background:#0b1424;border:1px solid #3b4b63;color:white;margin-bottom:15px}
+.button{display:inline-block;padding:13px 20px;background:#2563eb;color:white;text-decoration:none;border:none;border-radius:9px;cursor:pointer;font-weight:600;text-align:center}
+.button.secondary{background:#25354e}
+.disclaimer{margin-top:25px;color:#94a3b8;font-size:12px;line-height:1.7}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:25px}
+@media(max-width:700px){.levels-grid{grid-template-columns:repeat(2,1fr)}.page-container{margin:15px auto;padding:12px}.main-card{padding:18px}.actions{flex-direction:column}.button{width:100%;box-sizing:border-box}}
+</style>
 </head>
 
 <body>
 
+{% include "partials/site_nav.html" %}
+
 <div class="page-container">
+<div class="main-card">
 
-    <div class="main-card">
+    <div class="demo-label">{{ t('demonstration_mode') }}</div>
 
-        <div class="demo-label">
-            DEMONSTRATION MODE
-        </div>
+    <h1>{{ t('retinal_image_analysis') }}</h1>
+    <p style="color:#94a3b8;">{{ t('image_passed_checks') }}</p>
 
-        <h1>Retinal Image Analysis</h1>
+    <div class="result-card">
+        <p style="color:#94a3b8;">{{ t('selected_dr_grade') }}</p>
 
-        <p style="color:#94a3b8;">
-            Your uploaded image passed the prototype verification checks.
+        <div class="result-grade">{{ t('grade') }} {{ grade }}</div>
+
+        <div class="result-name">{{ levels[grade].name }}</div>
+
+        <p class="result-description">{{ levels[grade].description }}</p>
+
+        <p style="color:#94a3b8;font-size:13px;">
+            {{ t('severity_label') }}: {{ levels[grade].severity }}
         </p>
+    </div>
 
+    <h2>{{ t('uploaded_retinal_image') }}</h2>
 
-        <!-- CLASSIFICATION RESULT -->
+    <img src="{{ image_url }}"
+         alt="{{ t('uploaded_image_demo') }}"
+         class="image-preview">
 
-        <div class="result-card">
+    <p style="text-align:center;color:#94a3b8;font-size:12px;">
+        {{ t('report_reference') }}: {{ report_id }}
+    </p>
 
-            <p style="color:#94a3b8;">Selected DR Grade</p>
+    <!-- SIMULATED HEATMAP -->
 
-            <div class="result-grade">
-                Grade {{ grade }}
-            </div>
+    <div class="heatmap-card">
 
-            <div class="result-name">
-                {{ levels[grade].name }}
-            </div>
+        <h2>
+            {% if current_language == 'ta' %}
+                உருவக வெப்ப வரைபடம்
+            {% elif current_language == 'hi' %}
+                सिम्युलेटेड हीटमैप
+            {% else %}
+                Simulated Heatmap
+            {% endif %}
+        </h2>
 
-            <p class="result-description">
-                {{ levels[grade].description }}
-            </p>
-
-            <p style="color:#94a3b8;font-size:13px;">
-                Severity: {{ levels[grade].severity }}
-            </p>
-
-        </div>
-
-
-        <!-- UPLOADED IMAGE -->
-
-        <h2>Uploaded Retinal Image</h2>
+        <p style="color:#94a3b8;font-size:13px;line-height:1.6;">
+            {% if current_language == 'ta' %}
+                பதிவேற்றிய படத்திலிருந்து உருவாக்கப்பட்ட விளக்கமான வண்ண மேலடுக்கு.
+            {% elif current_language == 'hi' %}
+                अपलोड की गई छवि से बनाया गया एक उदाहरणात्मक रंग ओवरले।
+            {% else %}
+                An illustrative blue, green, yellow and red colour overlay generated from the uploaded image.
+            {% endif %}
+        </p>
 
         <img
-            src="{{ image_url }}"
-            alt="Uploaded retinal image"
-            class="image-preview"
+            src="{{ heatmap_url }}"
+            alt="Simulated illustrative retinal heatmap"
+            class="heatmap-image"
         >
 
-        <p style="text-align:center;color:#94a3b8;font-size:12px;">
-            Report Reference: {{ report_id[:12].upper() }}
-        </p>
+        <div class="heatmap-note">
+            <strong>
+                {% if current_language == 'ta' %}
+                    முக்கிய குறிப்பு:
+                {% elif current_language == 'hi' %}
+                    महत्वपूर्ण सूचना:
+                {% else %}
+                    Important:
+                {% endif %}
+            </strong>
 
-
-        <!-- FIVE CLASSIFICATION LEVELS -->
-
-        <h2 style="margin-top:35px;">
-            Five-Level DR Classification
-        </h2>
-
-        <div class="levels-grid">
-
-            {% for number, level in levels.items() %}
-
-                <div class="level-card {% if number == grade %}selected{% endif %}">
-
-                    <div class="level-number">
-                        {{ number }}
-                    </div>
-
-                    <div class="level-name">
-                        {{ level.name }}
-                    </div>
-
-                    {% if number == grade %}
-                        <p style="color:#60a5fa;font-size:11px;font-weight:bold;">
-                            SELECTED
-                        </p>
-                    {% endif %}
-
-                </div>
-
-            {% endfor %}
-
-        </div>
-
-
-        <!-- VERIFICATION SUMMARY -->
-
-        <h2 style="margin-top:35px;">
-            Verification Summary
-        </h2>
-
-        <div class="stage-list">
-
-            {% for stage in stages %}
-
-                <div class="stage-item">
-
-                    <h4>
-                        <span class="passed">
-                            {% if stage.status == "passed" %}✓{% else %}✕{% endif %}
-                        </span>
-                        {{ stage.name }}
-                    </h4>
-
-                    <p>{{ stage.message }}</p>
-
-                </div>
-
-            {% endfor %}
-
-        </div>
-
-
-        <!-- DEMO MODE CONTROLS -->
-
-        <div class="demo-panel">
-
-            <h2>Demo Mode</h2>
-
-            <p style="color:#94a3b8;font-size:13px;line-height:1.6;">
-                Select a classification level manually to demonstrate
-                how the five-level classification system works.
-            </p>
-
-            <form action="{{ url_for('demo_result') }}" method="POST">
-
-                <input
-                    type="hidden"
-                    name="filename"
-                    value="{{ filename }}"
-                >
-
-                <label for="grade">
-                    Select DR Classification
-                </label>
-
-                <select name="grade" id="grade" required>
-
-                    {% for number, level in levels.items() %}
-
-                        <option
-                            value="{{ number }}"
-                            {% if number == grade %}selected{% endif %}
-                        >
-                            Grade {{ number }} - {{ level.name }}
-                        </option>
-
-                    {% endfor %}
-
-                </select>
-
-                <button type="submit" class="button">
-                    Preview Selected Level
-                </button>
-
-            </form>
-
-        </div>
-
-
-        <!-- ACTION BUTTONS -->
-
-        <div class="actions">
-
-            <a href="{{ report_url }}" class="button">
-                Download PDF Report
-            </a>
-
-            <a href="{{ url_for('home') }}" class="button secondary">
-                Upload Another Image
-            </a>
-
-        </div>
-
-
-        <!-- DISCLAIMER -->
-
-        <div class="disclaimer">
-
-            <strong>Important Prototype Disclaimer:</strong>
-
-            This is a simulated academic demonstration. The displayed
-            classification is randomly generated or manually selected.
-            This application does not use a trained AI model and does not
-            provide an actual medical diagnosis. The verification checks
-            are basic image-processing demonstrations and cannot reliably
-            confirm that an image is a retinal photograph. Do not use
-            these results for medical decisions.
-
+            {% if current_language == 'ta' %}
+                இது உண்மையான AI கணிப்பு அல்லது Grad-CAM விளக்கம் அல்ல. இது நோய் பாதித்த பகுதிகளை அடையாளம் காணாது. கல்வி விளக்கத்திற்கான உருவக காட்சி மட்டுமே.
+            {% elif current_language == 'hi' %}
+                यह वास्तविक AI भविष्यवाणी या Grad-CAM व्याख्या नहीं है। यह रोग-प्रभावित क्षेत्रों की पहचान नहीं करता। यह केवल शैक्षिक प्रदर्शन के लिए एक उदाहरणात्मक दृश्य है।
+            {% else %}
+                This is not a genuine AI prediction or Grad-CAM explanation. It does not identify disease-affected regions. It is an illustrative visualization for educational demonstration only.
+            {% endif %}
         </div>
 
     </div>
 
+    <h2 style="margin-top:35px;">{{ t('five_level_classification') }}</h2>
+
+    <div class="levels-grid">
+        {% for number, level in levels.items() %}
+        <div class="level-card {% if number == grade %}selected{% endif %}">
+            <div class="level-number">{{ number }}</div>
+            <div class="level-name">{{ level.name }}</div>
+
+            {% if number == grade %}
+            <p style="color:#60a5fa;font-size:11px;font-weight:bold;">
+                {{ t('selected') }}
+            </p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <h2 style="margin-top:35px;">{{ t('verification_summary') }}</h2>
+
+    <div class="stage-list">
+        {% for stage in stages %}
+        <div class="stage-item">
+            <h4>
+                <span class="passed">
+                    {% if stage.status == "passed" %}✓{% else %}✕{% endif %}
+                </span>
+                {{ stage.name }}
+            </h4>
+            <p>{{ stage.message }}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="demo-panel">
+        <h2>{{ t('demo_mode') }}</h2>
+
+        <p style="color:#94a3b8;font-size:13px;line-height:1.6;">
+            {{ t('demo_grade_explanation') }}
+        </p>
+
+        <form action="{{ url_for('demo_result') }}" method="POST">
+
+            <input type="hidden" name="csrf_token"
+                   value="{{ csrf_token() }}">
+
+            <input type="hidden" name="screening_id"
+                   value="{{ screening.id }}">
+
+            <label for="grade">{{ t('select_dr_classification') }}</label>
+
+            <select name="grade" id="grade" required>
+                {% for number, level in levels.items() %}
+                <option value="{{ number }}"
+                    {% if number == grade %}selected{% endif %}>
+                    {{ t('grade') }} {{ number }} - {{ level.name }}
+                </option>
+                {% endfor %}
+            </select>
+
+            <button type="submit" class="button">
+                {{ t('save_preview_selected') }}
+            </button>
+
+        </form>
+    </div>
+
+    <div class="actions">
+        <a href="{{ report_url }}" class="button">
+            {{ t('download_pdf_report') }}
+        </a>
+
+        <a href="{{ url_for('home') }}" class="button secondary">
+            {{ t('upload_another_image') }}
+        </a>
+
+        <a href="{{ url_for('dashboard') }}" class="button secondary">
+            {{ t('patient_dashboard') }}
+        </a>
+    </div>
+
+    <div class="disclaimer">
+        <strong>{{ t('important_prototype_disclaimer') }}</strong>
+        {{ t('classification_disclaimer') }}
+    </div>
+
+</div>
 </div>
 
 </body>

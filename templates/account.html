@@ -1,0 +1,126 @@
+
+<!DOCTYPE html>
+<html lang="{{ current_language }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RetinaAI | {{ t('account') }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .account-main {
+            max-width: 1000px;
+            margin: 70px auto;
+            padding: 30px;
+        }
+        .account-heading { text-align: center; margin-bottom: 45px; }
+        .account-heading h1 { font-size: 32px; margin-bottom: 12px; }
+        .account-heading p { color: #8d9bb2; }
+        .account-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 22px;
+        }
+        .account-card {
+            background: #101a2b;
+            border: 1px solid #233149;
+            border-radius: 18px;
+            padding: 30px;
+        }
+        .account-card h2 { margin: 0 0 10px; }
+        .account-card p { color: #8d9bb2; line-height: 1.6; }
+        .account-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 25px;
+        }
+        .account-btn {
+            display: inline-block;
+            text-decoration: none;
+            padding: 12px 18px;
+            border-radius: 9px;
+            font-weight: 600;
+            background: #4b91ff;
+            color: white;
+        }
+        .account-btn.secondary {
+            background: #162238;
+            border: 1px solid #34445f;
+        }
+        .flash-message {
+            padding: 12px 16px;
+            border-radius: 9px;
+            margin-bottom: 15px;
+            background: #162238;
+        }
+        @media(max-width: 650px) {
+            .account-grid { grid-template-columns: 1fr; }
+            .account-main { margin: 25px auto; padding: 18px; }
+            .account-heading h1 { font-size: 25px; }
+        }
+    </style>
+</head>
+
+<body>
+
+{% include "partials/site_nav.html" %}
+
+<div class="account-main">
+
+    <div class="account-heading">
+        <div class="logo">Retina<span>AI.</span></div>
+        <h1>{{ t('welcome') }} to RetinaAI</h1>
+        <p>Select your account type to continue.</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="flash-message">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <div class="account-grid">
+
+        <section class="account-card">
+            <h2>{{ t('patient_portal') }}</h2>
+            <p>Access your personal dashboard, screening history and doctor reviews.</p>
+
+            <div class="account-actions">
+                <a class="account-btn"
+                   href="{{ url_for('login', role='patient') }}">
+                    {{ t('patient') }} {{ t('login') }}
+                </a>
+
+                <a class="account-btn secondary"
+                   href="{{ url_for('register', role='patient') }}">
+                    {{ t('register') }}
+                </a>
+            </div>
+        </section>
+
+        <section class="account-card">
+            <h2>{{ t('doctor_portal') }}</h2>
+            <p>Access patient records, review screening results and provide comments.</p>
+
+            <div class="account-actions">
+                <a class="account-btn"
+                   href="{{ url_for('login', role='doctor') }}">
+                    {{ t('doctor') }} {{ t('login') }}
+                </a>
+
+                <a class="account-btn secondary"
+                   href="{{ url_for('register', role='doctor') }}">
+                    {{ t('doctor') }} {{ t('register') }}
+                </a>
+            </div>
+        </section>
+
+    </div>
+
+    <p style="text-align:center;color:#8d9bb2;font-size:12px;margin-top:35px;">
+        {{ t('disclaimer') }}
+    </p>
+
+</div>
+</body>
+</html>

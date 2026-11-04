@@ -1,0 +1,339 @@
+
+<!DOCTYPE html>
+<html lang="{{ current_language }}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RetinaAI | {{ t('dashboard') }}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+.dashboard-wrapper{max-width:1100px;margin:45px auto;padding:20px}
+.dashboard-header{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;margin-bottom:35px}
+.dashboard-header p,.user-card p{color:#8d9bb2;line-height:1.7}
+.user-card{background:#101a2b;border:1px solid #233149;border-radius:16px;padding:25px;margin-bottom:22px}
+.user-card h2{margin-top:0;margin-bottom:12px}
+.patient-id{display:inline-block;background:#162238;border:1px solid #34445f;color:#65a2ff;padding:12px 16px;border-radius:9px;font-size:18px;font-weight:700;letter-spacing:1px;margin-top:8px}
+.dashboard-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}
+.action-btn{display:inline-block;padding:12px 18px;background:#4b91ff;color:white;text-decoration:none;border-radius:9px;font-weight:600;border:0;cursor:pointer;font-size:14px}
+.action-btn.secondary{background:#162238;border:1px solid #34445f}
+.status-note{font-size:12px;color:#f2c879!important;background:#302718;border:1px solid #65502c;padding:12px;border-radius:9px;margin-top:15px}
+.history-item{background:#17243a;border:1px solid #2b3b55;border-radius:12px;padding:18px;margin-top:14px}
+.history-item h3{margin:0 0 8px;color:#edf4ff}
+.history-item p{margin:6px 0;font-size:13px}
+.field{box-sizing:border-box;width:100%;max-width:520px;padding:13px;border-radius:9px;border:1px solid #34445f;background:#0b1423;color:#edf4ff;margin-top:8px}
+.review-box{border:1px solid #34445f;border-radius:10px;padding:15px;margin-top:12px;background:#17243a}
+.chart-container{position:relative;width:100%;height:320px;margin-top:20px}
+.chart-note{font-size:12px;color:#f2c879!important;line-height:1.6}
+.disclaimer{color:#8d9bb2;font-size:12px;line-height:1.7;margin-top:35px;text-align:center}
+@media(max-width:600px){.dashboard-wrapper{margin:15px auto;padding:14px}.dashboard-header h1{font-size:25px}.chart-container{height:260px}}
+</style>
+</head>
+
+<body>
+
+{% include "partials/site_nav.html" %}
+
+<div class="dashboard-wrapper">
+
+    <div class="dashboard-header">
+        <div>
+            <div class="logo">Retina<span style="color:#4b91ff;">AI.</span></div>
+            <h1 style="margin-top:25px;">{{ t('welcome') }}, {{ user.full_name }}</h1>
+            <p>
+                {% if user.role == "patient" %}
+                    {{ t('patient_portal') }}
+                {% else %}
+                    {{ t('doctor_portal') }}
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="user-card">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    {% if user.role == "patient" %}
+
+    <section class="user-card">
+        <h2>{{ t('your_patient_id') }}</h2>
+        <p>{{ t('patient_id_reference') }}</p>
+
+        <div class="patient-id" id="patientId">{{ user.patient_id }}</div>
+
+        <div class="dashboard-actions">
+            <button class="action-btn" type="button" onclick="copyPatientId()">
+                {{ t('copy_patient_id') }}
+            </button>
+            <a href="{{ url_for('home') }}" class="action-btn secondary">
+                {{ t('new_screening') }}
+            </a>
+        </div>
+
+        <p id="copyMessage" style="font-size:12px;"></p>
+    </section>
+
+    <section class="user-card">
+        <h2>{{ t('screening_progress') }}</h2>
+        <p>{{ t('recorded_grades') }}</p>
+
+        {% if screenings %}
+            {% set chart_screenings = screenings|reverse|list %}
+
+            <div class="chart-container">
+                <canvas id="progressChart"></canvas>
+            </div>
+
+            <p class="chart-note">
+                {{ t('chart_disclaimer') }}
+            </p>
+        {% else %}
+            <p>{{ t('first_screening_chart') }}</p>
+        {% endif %}
+    </section>
+
+    <section class="user-card">
+        <h2>{{ t('screening_history') }}</h2>
+        <p>{{ t('recent_screenings_first') }}</p>
+
+        {% if screenings %}
+            {% for screening in screenings %}
+            <div class="history-item">
+                <h3>{{ t('screening') }} #{{ screening.id }} — {{ t('grade') }} {{ screening.grade }}</h3>
+
+                <p><strong>{{ t('classification') }}:</strong>
+                    {{ {
+                        0:"No DR",
+                        1:"Mild Non-Proliferative DR",
+                        2:"Moderate Non-Proliferative DR",
+                        3:"Severe Non-Proliferative DR",
+                        4:"Proliferative DR"
+                    }.get(screening.grade, "Unknown") }}
+                </p>
+
+                <p><strong>{{ t('date') }}:</strong> {{ screening.created_at.strftime("%d %b %Y, %H:%M") }} UTC</p>
+                <p><strong>{{ t('mode') }}:</strong> {{ t('simulated_mode') }}</p>
+
+                <div class="dashboard-actions">
+                    <a class="action-btn" href="{{ url_for('view_screening', screening_id=screening.id) }}">
+                        {{ t('view_result') }}
+                    </a>
+                    <a class="action-btn secondary" href="{{ url_for('download_report', screening_id=screening.id) }}">
+                        {{ t('download_pdf') }}
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>{{ t('no_saved_screenings') }} <strong>{{ t('new_screening') }}</strong> {{ t('to_begin') }}</p>
+        {% endif %}
+    </section>
+
+    <section class="user-card">
+        <h2>{{ t('doctor_reviews') }}</h2>
+        <p>{{ t('doctor_reviews_description') }}</p>
+
+        {% if reviews %}
+            {% for review, screening, doctor in reviews %}
+            <div class="review-box">
+                <h3>{{ t('screening') }} #{{ screening.id }}</h3>
+                <p><strong>{{ t('reviewed') }}:</strong> {{ review.created_at.strftime("%d %b %Y, %H:%M") }} UTC</p>
+                <p><strong>{{ t('doctor') }}:</strong> {{ doctor.full_name }} <span style="color:#f2c879;">({{ t('unverified') }})</span></p>
+
+                {% if review.classification_comment %}
+                <p><strong>{{ t('classification_comments') }}:</strong><br>{{ review.classification_comment }}</p>
+                {% endif %}
+
+                {% if review.heatmap_comment %}
+                <p><strong>{{ t('heatmap_comments') }}:</strong><br>{{ review.heatmap_comment }}</p>
+                {% endif %}
+
+                {% if review.progress_comment %}
+                <p><strong>{{ t('progress_comments') }}:</strong><br>{{ review.progress_comment }}</p>
+                {% endif %}
+
+                {% if review.overall_advice %}
+                <p><strong>{{ t('overall_advice') }}:</strong><br>{{ review.overall_advice }}</p>
+                {% endif %}
+
+                <a class="action-btn secondary" href="{{ url_for('view_screening', screening_id=screening.id) }}">
+                    {{ t('view_screening') }}
+                </a>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>{{ t('no_doctor_reviews') }}</p>
+        {% endif %}
+    </section>
+
+    {% else %}
+
+    <section class="user-card">
+        <h2>{{ t('doctor_account') }}</h2>
+        <p>{{ t('doctor_portal_welcome') }}</p>
+        <p>
+            {{ t('medical_registration_number') }}:
+            <strong>{{ user.medical_registration_number }}</strong>
+        </p>
+
+        <p class="status-note">
+            {{ t('unverified_notice') }}
+        </p>
+
+        <h2 style="margin-top:28px;">{{ t('find_patient') }}</h2>
+        <p>{{ t('patient_id_search_help') }}</p>
+
+        <form method="POST" action="{{ url_for('doctor_search') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <label for="patient_id">{{ t('patient_id') }}</label><br>
+
+            <input class="field" id="patient_id" name="patient_id"
+                   placeholder="{{ t('patient_id_placeholder') }}"
+                   required maxlength="20">
+
+            <div class="dashboard-actions">
+                <button class="action-btn" type="submit">
+                    {{ t('search_patient') }}
+                </button>
+            </div>
+        </form>
+    </section>
+
+    {% endif %}
+
+    <p class="disclaimer">
+        {{ t('disclaimer') }}
+    </p>
+
+</div>
+
+<script>
+function copyPatientId(){
+    const el = document.getElementById("patientId");
+    if(!el) return;
+
+    const id = el.textContent.trim();
+    const msg = document.getElementById("copyMessage");
+
+    if(navigator.clipboard && window.isSecureContext){
+        navigator.clipboard.writeText(id)
+        .then(()=>msg.textContent="{{ t('patient_id_copied') }}")
+        .catch(()=>msg.textContent="{{ t('copy_failed') }}");
+    } else {
+        msg.textContent="{{ t('copy_manually') }}";
+    }
+}
+</script>
+
+{% if user.role == "patient" and screenings %}
+<script>
+const chartLabels = {{ chart_screenings|map(attribute='created_at')|map('string')|list|tojson }};
+const chartGrades = {{ chart_screenings|map(attribute='grade')|list|tojson }};
+const chartIds = {{ chart_screenings|map(attribute='id')|list|tojson }};
+
+const gradeNames = [
+    "No DR",
+    "Mild Non-Proliferative DR",
+    "Moderate Non-Proliferative DR",
+    "Severe Non-Proliferative DR",
+    "Proliferative DR"
+];
+
+const displayDates = chartLabels.map(date => {
+    const parsed = new Date(date);
+    return isNaN(parsed) ? date : parsed.toLocaleDateString();
+});
+
+const canvas = document.getElementById("progressChart");
+
+if(canvas && window.Chart){
+    new Chart(canvas, {
+        type: "line",
+        data: {
+            labels: displayDates,
+            datasets: [{
+                label: {{ t('chart_dataset_label')|tojson }},
+                data: chartGrades,
+                borderColor: "#4b91ff",
+                backgroundColor: "rgba(75,145,255,0.15)",
+                pointBackgroundColor: "#65a2ff",
+                pointBorderColor: "#ffffff",
+                pointRadius: 6,
+                pointHoverRadius: 9,
+                borderWidth: 3,
+                tension: 0.3,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: "index"
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: "#dce7f8"
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        title: function(items) {
+                            const index = items[0].dataIndex;
+                            return "{{ t('screening') }} #" + chartIds[index];
+                        },
+                        label: function(context) {
+                            const grade = context.parsed.y;
+                            return "{{ t('grade') }} " + grade + ": " + gradeNames[grade];
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        color: "#a8b5c9"
+                    },
+                    grid: {
+                        color: "rgba(255,255,255,0.06)"
+                    },
+                    title: {
+                        display: true,
+                        text: {{ t('screening_date')|tojson }},
+                        color: "#a8b5c9"
+                    }
+                },
+                y: {
+                    min: 0,
+                    max: 4,
+                    ticks: {
+                        stepSize: 1,
+                        color: "#a8b5c9",
+                        callback: function(value) {
+                            return "{{ t('grade') }} " + value;
+                        }
+                    },
+                    grid: {
+                        color: "rgba(255,255,255,0.08)"
+                    },
+                    title: {
+                        display: true,
+                        text: {{ t('demonstration_grade')|tojson }},
+                        color: "#a8b5c9"
+                    }
+                }
+            }
+        }
+    });
+}
+</script>
+{% endif %}
+
+</body>
+</html>

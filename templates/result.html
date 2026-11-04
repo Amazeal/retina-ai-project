@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ current_language }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Verification | RetinaAI</title>
+    <title>{{ t('image_verification') }} | RetinaAI</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
@@ -110,11 +110,6 @@
             color: white;
         }
 
-        .action-button.secondary {
-            background: #25354e;
-            color: #e2e8f0;
-        }
-
         .disclaimer {
             color: #94a3b8;
             font-size: 12px;
@@ -145,47 +140,41 @@
 
 <body>
 
-    <div class="verification-container">
+    {% include 'partials/site_nav.html' %}
 
+    <div class="verification-container">
         <div class="verification-card">
 
-            <h1>Image Verification</h1>
+            <h1>{{ t('image_verification') }}</h1>
 
             <p style="color: #94a3b8;">
-                Review the results of the retinal image verification process.
+                {{ t('verification_intro') }}
             </p>
 
             {% if success %}
-
                 <div class="verification-status success">
-                    <h2>✓ Image Verified</h2>
+                    <h2>✓ {{ t('image_verified') }}</h2>
                     <p style="color: #bbf7d0;">
                         {{ message }}
                     </p>
                 </div>
-
             {% else %}
-
                 <div class="verification-status failed">
-                    <h2>✕ Verification Failed</h2>
+                    <h2>✕ {{ t('verification_failed') }}</h2>
                     <p style="color: #fecaca;">
                         {{ message }}
                     </p>
                 </div>
-
             {% endif %}
 
-
-            <h2 style="margin-top: 30px;">Verification Summary</h2>
+            <h2 style="margin-top: 30px;">
+                {{ t('verification_summary') }}
+            </h2>
 
             {% if stages %}
-
                 <div class="stage-list">
-
                     {% for stage in stages %}
-
                         <div class="stage-item">
-
                             <div class="stage-icon">
                                 {% if stage.status == "passed" %}
                                     <span class="stage-passed">✓</span>
@@ -198,42 +187,27 @@
                                 <h3>{{ stage.name }}</h3>
                                 <p>{{ stage.message }}</p>
                             </div>
-
                         </div>
-
                     {% endfor %}
-
                 </div>
-
             {% else %}
-
                 <p style="color: #94a3b8;">
-                    No verification stages are available.
+                    {{ t('no_verification_stages') }}
                 </p>
-
             {% endif %}
 
-
             <div class="action-buttons">
-
                 <a href="{{ url_for('home') }}" class="action-button">
-                    Upload Another Image
+                    {{ t('upload_another_image') }}
                 </a>
-
             </div>
 
-
             <div class="disclaimer">
-                <strong>Prototype Disclaimer:</strong>
-                This project currently uses basic image-quality checks
-                and demonstration-based retinal image verification.
-                It does not use a trained AI model and does not provide
-                a real medical diagnosis. Any diabetic retinopathy
-                classification results are simulated.
+                <strong>{{ t('important_prototype_disclaimer') }}</strong>
+                {{ t('verification_disclaimer') }}
             </div>
 
         </div>
-
     </div>
 
 </body>

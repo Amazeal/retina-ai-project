@@ -1,0 +1,58 @@
+
+<header class="site-nav">
+    <a href="{{ url_for('dashboard') if current_user else url_for('account') }}"
+       class="site-nav-brand">
+        RetinaAI
+    </a>
+
+    <div class="site-nav-actions">
+
+        {% if current_user %}
+            <a href="{{ url_for('dashboard') }}" class="site-nav-link">
+                {{ t('dashboard') }}
+            </a>
+        {% else %}
+            <a href="{{ url_for('account') }}" class="site-nav-link">
+                {{ t('account') }}
+            </a>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('set_language') }}"
+              class="language-form">
+
+            <select name="language"
+                    aria-label="{{ t('language') }}"
+                    onchange="this.form.submit()">
+                {% for code, name in languages.items() %}
+                    <option value="{{ code }}"
+                        {% if current_language == code %}selected{% endif %}>
+                        {{ name }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            {% if request.endpoint == 'home' %}
+                <input type="hidden" name="next" value="/">
+            {% elif request.endpoint == 'login' %}
+                <input type="hidden" name="next" value="{{ url_for('login', role=request.view_args.role) }}">
+            {% elif request.endpoint == 'register' %}
+                <input type="hidden" name="next" value="{{ url_for('register', role=request.view_args.role) }}">
+            {% elif current_user %}
+                <input type="hidden" name="next" value="{{ url_for('dashboard') }}">
+            {% else %}
+                <input type="hidden" name="next" value="{{ url_for('account') }}">
+            {% endif %}
+
+        </form>
+
+        {% if current_user %}
+            <form method="POST" action="{{ url_for('logout') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="site-nav-logout">
+                    {{ t('logout') }}
+                </button>
+            </form>
+        {% endif %}
+
+    </div>
+</header>
